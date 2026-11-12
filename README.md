@@ -295,3 +295,4 @@ Aplikasi telah dilengkapi `vercel.json` agar routing SPA React Router berjalan m
 ## 📄 Lisensi & Hak Cipta
 Dibuat dengan dedikasi dan standar rekayasa perangkat lunak profesional untuk **Coding Talent Challenge**.
 Hak Cipta &copy; 2026 LabTrack System.
+
