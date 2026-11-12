@@ -8,6 +8,8 @@ import {
   Eye,
   AlertCircle,
   Package,
+  Layers,
+  
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -209,19 +211,27 @@ export const InventoryPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-slide-in">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-800">Manajemen Inventaris Barang</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Kelola data perangkat keras, periferal, dan inventaris laboratorium komputer
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
+              Manajemen Inventaris Barang
+            </h2>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+              {filteredItems.length} Data
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Kelola data perangkat keras, periferal lab, kondisi fisik, dan stok peralatan secara terpusat
           </p>
         </div>
+
         {role === 'admin' && (
           <button
             onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-900 hover:bg-primary-800 text-white font-semibold text-xs shadow-md transition"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-blue-600 hover:to-blue-800 text-white font-semibold text-xs shadow-lg shadow-blue-500/25 active:scale-95 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Tambah Barang Baru</span>
@@ -230,7 +240,7 @@ export const InventoryPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_rgba(20,45,78,0.03)] flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
         {/* Search */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -238,8 +248,8 @@ export const InventoryPage: React.FC = () => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama barang atau kode inventaris..."
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition"
+            placeholder="Cari nama barang, deskripsi, atau kode inventaris..."
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
           />
         </div>
 
@@ -251,7 +261,7 @@ export const InventoryPage: React.FC = () => {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-transparent text-slate-700 font-medium focus:outline-none cursor-pointer text-xs"
+              className="bg-transparent text-slate-700 font-semibold focus:outline-none cursor-pointer text-xs"
             >
               <option value="all">Semua Kategori</option>
               {categories.map((c) => (
@@ -267,7 +277,7 @@ export const InventoryPage: React.FC = () => {
             <select
               value={selectedAvailability}
               onChange={(e) => setSelectedAvailability(e.target.value)}
-              className="bg-transparent text-slate-700 font-medium focus:outline-none cursor-pointer text-xs"
+              className="bg-transparent text-slate-700 font-semibold focus:outline-none cursor-pointer text-xs"
             >
               <option value="all">Semua Ketersediaan</option>
               <option value="available">Tersedia (&gt; 0)</option>
@@ -278,7 +288,7 @@ export const InventoryPage: React.FC = () => {
       </div>
 
       {/* Inventory Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_-2px_rgba(20,45,78,0.04)] overflow-hidden">
         {loading ? (
           <div className="p-6">
             <TableSkeleton rows={6} cols={7} />
@@ -287,7 +297,7 @@ export const InventoryPage: React.FC = () => {
           <div className="p-8">
             <EmptyState
               title="Tidak Ada Barang Ditemukan"
-              description="Tidak ada data barang inventaris yang sesuai dengan filter atau kata kunci pencarian Anda."
+              description="Tidak ada data barang inventaris yang cocok dengan filter atau kata kunci pencarian Anda."
               icon={Package}
               actionText={role === 'admin' ? 'Tambah Barang Sekarang' : undefined}
               onAction={role === 'admin' ? openAddModal : undefined}
@@ -296,23 +306,23 @@ export const InventoryPage: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200/80 uppercase tracking-wider">
+              <thead className="bg-slate-50/80 text-slate-500 font-bold border-b border-slate-200/80 uppercase tracking-wider">
                 <tr>
-                  <th className="px-5 py-3.5">Kode</th>
-                  <th className="px-5 py-3.5">Nama Barang</th>
-                  <th className="px-5 py-3.5">Kategori</th>
-                  <th className="px-5 py-3.5 text-center">Total Stok</th>
-                  <th className="px-5 py-3.5 text-center">Tersedia</th>
-                  <th className="px-5 py-3.5 text-center">Dipinjam</th>
-                  <th className="px-5 py-3.5">Kondisi</th>
-                  <th className="px-5 py-3.5 text-right">Aksi</th>
+                  <th className="px-5 py-4">Kode</th>
+                  <th className="px-5 py-4">Nama Barang</th>
+                  <th className="px-5 py-4">Kategori</th>
+                  <th className="px-5 py-4 text-center">Total Stok</th>
+                  <th className="px-5 py-4 text-center">Tersedia</th>
+                  <th className="px-5 py-4 text-center">Dipinjam</th>
+                  <th className="px-5 py-4">Kondisi</th>
+                  <th className="px-5 py-4 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredItems.map((item) => {
                   const borrowedCount = item.stock - item.available_stock;
                   return (
-                    <tr key={item.id} className="hover:bg-slate-50/50 transition">
+                    <tr key={item.id} className="even:bg-slate-50/30 hover:bg-blue-50/40 transition-colors">
                       <td className="px-5 py-4 font-mono font-bold text-primary-900">
                         {item.item_code}
                       </td>
@@ -323,19 +333,23 @@ export const InventoryPage: React.FC = () => {
                         </p>
                       </td>
                       <td className="px-5 py-4 text-slate-600 font-medium">
-                        {item.category?.category_name || '-'}
+                        <span className="inline-flex items-center gap-1 text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium">
+                          <Layers className="w-3 h-3 text-slate-400" />
+                          {item.category?.category_name || '-'}
+                        </span>
                       </td>
                       <td className="px-5 py-4 text-center font-bold text-slate-700">
                         {item.stock}
                       </td>
                       <td className="px-5 py-4 text-center">
                         <span
-                          className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                             item.available_stock > 0
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-red-100 text-red-800'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-red-50 text-red-700 border border-red-200'
                           }`}
                         >
+                          <span className={`w-1.5 h-1.5 rounded-full ${item.available_stock > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
                           {item.available_stock}
                         </span>
                       </td>
@@ -344,7 +358,7 @@ export const InventoryPage: React.FC = () => {
                       </td>
                       <td className="px-5 py-4">
                         <span
-                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusBadgeClass(
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getStatusBadgeClass(
                             item.condition
                           )}`}
                         >
@@ -418,7 +432,7 @@ export const InventoryPage: React.FC = () => {
                 value={itemCode}
                 onChange={(e) => setItemCode(e.target.value.toUpperCase())}
                 placeholder="misal: BR001, LAP-01"
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary uppercase font-mono"
+                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 uppercase font-mono"
                 required
               />
             </div>
@@ -430,7 +444,7 @@ export const InventoryPage: React.FC = () => {
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 required
               >
                 {categories.map((c) => (
@@ -451,7 +465,7 @@ export const InventoryPage: React.FC = () => {
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
               placeholder="misal: Laptop Lenovo ThinkPad T490"
-              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               required
             />
           </div>
@@ -466,7 +480,7 @@ export const InventoryPage: React.FC = () => {
                 min={0}
                 value={stock}
                 onChange={(e) => setStock(parseInt(e.target.value) || 0)}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary font-bold"
+                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold"
                 required
               />
             </div>
@@ -478,7 +492,7 @@ export const InventoryPage: React.FC = () => {
               <select
                 value={condition}
                 onChange={(e) => setCondition(e.target.value as ItemCondition)}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               >
                 <option value="Baik">Baik</option>
                 <option value="Rusak Ringan">Rusak Ringan</option>
@@ -496,7 +510,7 @@ export const InventoryPage: React.FC = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Catatan spesifikasi teknis, kelengkapan kabel, charger, atau nomor seri..."
-              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             />
           </div>
 
@@ -504,14 +518,14 @@ export const InventoryPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsFormModalOpen(false)}
-              className="px-4 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
+              className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-primary-900 hover:bg-primary-800 rounded-xl shadow-sm transition disabled:opacity-60"
+              className="px-5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-blue-600 hover:to-blue-800 rounded-xl shadow-md shadow-blue-500/20 transition disabled:opacity-60"
             >
               {submitting ? 'Menyimpan...' : activeItem ? 'Simpan Perubahan' : 'Tambah Barang'}
             </button>
@@ -528,7 +542,7 @@ export const InventoryPage: React.FC = () => {
           maxWidth="md"
         >
           <div className="space-y-4 text-xs">
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-2">
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
               <h4 className="font-extrabold text-sm text-slate-800">{activeItem.item_name}</h4>
               <p className="text-slate-500 leading-relaxed">{activeItem.description || 'Tidak ada deskripsi.'}</p>
             </div>
@@ -587,4 +601,3 @@ export const InventoryPage: React.FC = () => {
     </div>
   );
 };
-

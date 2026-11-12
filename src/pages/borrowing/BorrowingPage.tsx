@@ -10,6 +10,7 @@ import {
   Calendar,
   User,
   Hash,
+  Boxes,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -97,7 +98,6 @@ export const BorrowingPage: React.FC = () => {
 
   const addItemRow = () => {
     const availableItems = items.filter((i) => i.available_stock > 0);
-    // Find item not yet selected
     const unselected = availableItems.find(
       (ai) => !selectedItems.some((si) => si.item_id === ai.id)
     );
@@ -193,18 +193,26 @@ export const BorrowingPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-slide-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-800">Transaksi Peminjaman Barang</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Pencatatan peminjaman alat, validasi stok otomatis, dan monitoring status peminjaman
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
+              Transaksi Peminjaman Alat
+            </h2>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+              {filteredBorrowings.length} Transaksi
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Pencatatan peminjaman alat lab, validasi stok multi-item otomatis, dan monitoring status pengembalian
           </p>
         </div>
+
         <button
           onClick={openNewBorrowingModal}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary hover:bg-blue-600 text-white font-semibold text-xs shadow-md shadow-blue-500/20 transition"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-blue-600 hover:to-blue-800 text-white font-semibold text-xs shadow-lg shadow-blue-500/25 active:scale-95 transition-all"
         >
           <Plus className="w-4 h-4" />
           <span>Buat Peminjaman Baru</span>
@@ -212,7 +220,7 @@ export const BorrowingPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_rgba(20,45,78,0.03)] flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
         <div className="relative flex-1">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -220,7 +228,7 @@ export const BorrowingPage: React.FC = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari kode transaksi, nama peminjam, atau NIM..."
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
           />
         </div>
 
@@ -229,7 +237,7 @@ export const BorrowingPage: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-transparent text-slate-700 font-medium focus:outline-none cursor-pointer text-xs"
+            className="bg-transparent text-slate-700 font-semibold focus:outline-none cursor-pointer text-xs"
           >
             <option value="all">Semua Status</option>
             <option value="Dipinjam">Dipinjam</option>
@@ -240,7 +248,7 @@ export const BorrowingPage: React.FC = () => {
       </div>
 
       {/* Borrowings Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_-2px_rgba(20,45,78,0.04)] overflow-hidden">
         {loading ? (
           <div className="p-6">
             <TableSkeleton rows={5} cols={6} />
@@ -258,22 +266,22 @@ export const BorrowingPage: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200/80 uppercase tracking-wider">
+              <thead className="bg-slate-50/80 text-slate-500 font-bold border-b border-slate-200/80 uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-3.5">Kode Peminjaman</th>
-                  <th className="px-6 py-3.5">Peminjam</th>
-                  <th className="px-6 py-3.5">Tanggal Pinjam</th>
-                  <th className="px-6 py-3.5">Rencana Kembali</th>
-                  <th className="px-6 py-3.5 text-center">Jumlah Barang</th>
-                  <th className="px-6 py-3.5">Status</th>
-                  <th className="px-6 py-3.5 text-right">Aksi</th>
+                  <th className="px-6 py-4">Kode Transaksi</th>
+                  <th className="px-6 py-4">Peminjam</th>
+                  <th className="px-6 py-4">Tanggal Pinjam</th>
+                  <th className="px-6 py-4">Rencana Kembali</th>
+                  <th className="px-6 py-4 text-center">Jumlah Barang</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredBorrowings.map((b) => {
                   const totalItems = b.details?.reduce((acc, d) => acc + d.quantity, 0) || 0;
                   return (
-                    <tr key={b.id} className="hover:bg-slate-50/50 transition">
+                    <tr key={b.id} className="even:bg-slate-50/30 hover:bg-blue-50/40 transition-colors">
                       <td className="px-6 py-4 font-mono font-bold text-primary-900">
                         {b.borrowing_code}
                       </td>
@@ -283,30 +291,31 @@ export const BorrowingPage: React.FC = () => {
                           <p className="text-[11px] font-mono text-slate-400">NIM/ID: {b.borrower_identity}</p>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-slate-600">
+                      <td className="px-6 py-4 text-slate-600 font-medium">
                         {formatDate(b.borrowing_date)}
                       </td>
-                      <td className="px-6 py-4 text-slate-600">
+                      <td className="px-6 py-4 text-slate-600 font-medium">
                         {formatDate(b.expected_return_date)}
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full">
+                        <span className="font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full text-xs">
                           {totalItems} unit
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getStatusBadgeClass(
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border ${getStatusBadgeClass(
                             b.status
                           )}`}
                         >
+                          <span className="w-1.5 h-1.5 rounded-full bg-current" />
                           {b.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => openDetailModal(b)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-50 text-primary-900 hover:bg-primary-100 transition"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-blue-50 hover:text-secondary transition active:scale-95 shadow-sm"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Detail</span>
@@ -331,7 +340,7 @@ export const BorrowingPage: React.FC = () => {
       >
         <form onSubmit={handleCreateBorrowing} className="space-y-4">
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2">
+            <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <p>{formError}</p>
             </div>
@@ -349,7 +358,7 @@ export const BorrowingPage: React.FC = () => {
                   value={borrowerName}
                   onChange={(e) => setBorrowerName(e.target.value)}
                   placeholder="Nama mahasiswa / dosen"
-                  className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+                  className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                   required
                 />
               </div>
@@ -366,7 +375,7 @@ export const BorrowingPage: React.FC = () => {
                   value={borrowerIdentity}
                   onChange={(e) => setBorrowerIdentity(e.target.value)}
                   placeholder="misal: 21051204011"
-                  className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+                  className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -383,7 +392,7 @@ export const BorrowingPage: React.FC = () => {
                   type="date"
                   value={expectedReturnDate}
                   onChange={(e) => setExpectedReturnDate(e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+                  className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -397,7 +406,7 @@ export const BorrowingPage: React.FC = () => {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="misal: Praktikum Pemrograman Web Lab 2"
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               />
             </div>
           </div>
@@ -405,13 +414,14 @@ export const BorrowingPage: React.FC = () => {
           {/* Items Selector */}
           <div className="pt-2">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-bold text-slate-800">
-                Pilih Barang yang Dipinjam ({selectedItems.length})
+              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Boxes className="w-3.5 h-3.5 text-secondary" />
+                <span>Pilih Barang yang Dipinjam ({selectedItems.length})</span>
               </label>
               <button
                 type="button"
                 onClick={addItemRow}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-secondary hover:text-blue-700"
+                className="inline-flex items-center gap-1 text-xs font-bold text-secondary hover:text-blue-700 transition"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Tambah Barang Lain</span>
@@ -424,13 +434,13 @@ export const BorrowingPage: React.FC = () => {
                 return (
                   <div
                     key={index}
-                    className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200"
+                    className="flex items-center gap-3 p-3 bg-slate-50/80 rounded-2xl border border-slate-200"
                   >
                     <div className="flex-1">
                       <select
                         value={row.item_id}
                         onChange={(e) => updateItemRow(index, 'item_id', e.target.value)}
-                        className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                        className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                       >
                         {items.map((i) => (
                           <option key={i.id} value={i.id} disabled={i.available_stock === 0}>
@@ -447,7 +457,7 @@ export const BorrowingPage: React.FC = () => {
                         max={currentItem?.available_stock || 1}
                         value={row.quantity}
                         onChange={(e) => updateItemRow(index, 'quantity', e.target.value)}
-                        className="w-full px-3 py-1.5 text-xs font-bold text-center bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                        className="w-full px-3 py-1.5 text-xs font-bold text-center bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>
 
@@ -470,14 +480,14 @@ export const BorrowingPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsNewModalOpen(false)}
-              className="px-4 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
+              className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-primary-900 hover:bg-primary-800 rounded-xl shadow-sm transition disabled:opacity-60"
+              className="px-5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-blue-600 hover:to-blue-800 rounded-xl shadow-md shadow-blue-500/20 transition disabled:opacity-60"
             >
               {submitting ? 'Menyimpan Transaksi...' : 'Konfirmasi Peminjaman'}
             </button>
@@ -494,8 +504,7 @@ export const BorrowingPage: React.FC = () => {
           maxWidth="lg"
         >
           <div className="space-y-4 text-xs">
-            {/* Header info */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
               <div>
                 <span className="text-slate-400 block mb-0.5">Peminjam:</span>
                 <span className="font-bold text-slate-800">{activeBorrowing.borrower_name}</span>
@@ -513,31 +522,30 @@ export const BorrowingPage: React.FC = () => {
               </div>
               <div>
                 <span className="text-slate-400 block mb-0.5">Status:</span>
-                <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusBadgeClass(activeBorrowing.status)}`}>
+                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getStatusBadgeClass(activeBorrowing.status)}`}>
                   {activeBorrowing.status}
                 </span>
               </div>
             </div>
 
             {activeBorrowing.notes && (
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-slate-400 font-semibold block mb-0.5">Catatan / Keperluan:</span>
                 <p className="text-slate-700">{activeBorrowing.notes}</p>
               </div>
             )}
 
-            {/* Items details table */}
             <div>
               <h5 className="font-bold text-slate-800 mb-2">Daftar Barang yang Dipinjam</h5>
-              <div className="border border-slate-200 rounded-xl overflow-hidden">
+              <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                  <thead className="bg-slate-50/80 text-slate-600 font-bold border-b border-slate-200">
                     <tr>
-                      <th className="px-4 py-2.5">Kode</th>
-                      <th className="px-4 py-2.5">Nama Barang</th>
-                      <th className="px-4 py-2.5 text-center">Dipinjam</th>
-                      <th className="px-4 py-2.5 text-center">Dikembalikan</th>
-                      <th className="px-4 py-2.5 text-center">Sisa</th>
+                      <th className="px-4 py-3">Kode</th>
+                      <th className="px-4 py-3">Nama Barang</th>
+                      <th className="px-4 py-3 text-center">Dipinjam</th>
+                      <th className="px-4 py-3 text-center">Dikembalikan</th>
+                      <th className="px-4 py-3 text-center">Sisa</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -584,4 +592,3 @@ export const BorrowingPage: React.FC = () => {
     </div>
   );
 };
-
