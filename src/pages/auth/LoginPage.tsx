@@ -40,13 +40,13 @@ export const LoginPage: React.FC = () => {
     setError(null);
     setLoading(true);
     try {
-      await login(identifier, password);
+      const loggedInUser = await login(identifier, password);
       showToast({
         type: 'success',
         title: 'Login Berhasil',
-        message: 'Selamat datang di Laboratory Inventory System.',
+        message: `Selamat datang di LabTrack, ${loggedInUser.full_name || loggedInUser.username}.`,
       });
-      if (identifier.toLowerCase().includes('admin')) {
+      if (loggedInUser.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
         navigate('/staff/dashboard');
@@ -61,21 +61,25 @@ export const LoginPage: React.FC = () => {
   const handleQuickLogin = async (roleType: 'admin' | 'staff') => {
     const creds =
       roleType === 'admin'
-        ? { user: 'admin', pass: 'admin123' }
-        : { user: 'staff', pass: 'staff123' };
+        ? { user: 'admin@labtrack.com', pass: 'admin123' }
+        : { user: 'staff@labtrack.com', pass: 'staff123' };
 
     setIdentifier(creds.user);
     setPassword(creds.pass);
     setError(null);
     setLoading(true);
     try {
-      await login(creds.user, creds.pass);
+      const loggedInUser = await login(creds.user, creds.pass);
       showToast({
         type: 'success',
         title: 'Login Demo Berhasil',
-        message: `Berhasil masuk sebagai ${roleType.toUpperCase()}.`,
+        message: `Berhasil masuk sebagai ${roleType.toUpperCase()} (${loggedInUser.full_name}).`,
       });
-      navigate(roleType === 'admin' ? '/admin/dashboard' : '/staff/dashboard');
+      if (loggedInUser.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/staff/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Gagal login demo.');
     } finally {
@@ -135,21 +139,28 @@ export const LoginPage: React.FC = () => {
                 <label className="block text-xs font-semibold text-slate-700">
                   Username atau Email
                 </label>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[10px] text-slate-400">Isi cepat:</span>
                   <button
                     type="button"
-                    onClick={() => fillFormOnly('admin', 'admin123')}
+                    onClick={() => fillFormOnly('admin@labtrack.com', 'admin123')}
                     className="text-[10px] font-semibold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200 transition"
                   >
                     admin
                   </button>
                   <button
                     type="button"
-                    onClick={() => fillFormOnly('staff', 'staff123')}
+                    onClick={() => fillFormOnly('staff@labtrack.com', 'staff123')}
                     className="text-[10px] font-semibold text-blue-700 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded border border-blue-200 transition"
                   >
                     staff
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fillFormOnly('rio@labtrack.com', 'admin123')}
+                    className="text-[10px] font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-200 transition"
+                  >
+                    rio (admin)
                   </button>
                 </div>
               </div>
@@ -231,25 +242,26 @@ export const LoginPage: React.FC = () => {
                 type="button"
                 onClick={() => handleQuickLogin('admin')}
                 disabled={loading}
-                className="group text-left p-3.5 rounded-2xl border-2 border-amber-200 bg-amber-50/70 hover:bg-amber-100 hover:border-amber-400 transition-all shadow-sm hover:shadow-md flex flex-col justify-between"
+                className="group text-left p-4 rounded-2xl border-2 border-amber-300/80 bg-gradient-to-br from-amber-50/90 to-amber-100/50 hover:bg-amber-100 hover:border-amber-500 transition-all shadow-sm hover:shadow-md flex flex-col justify-between active:scale-[0.99] disabled:opacity-60 cursor-pointer"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-amber-900">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-black text-amber-950">
                       <ShieldCheck className="w-4 h-4 text-amber-600 flex-shrink-0" />
                       Role Admin
                     </span>
-                    <span className="text-[10px] bg-amber-200/80 text-amber-900 font-bold px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] bg-amber-200 text-amber-900 font-extrabold px-2 py-0.5 rounded-full border border-amber-300">
                       Full Access
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-600">
-                    User: <strong className="font-mono text-slate-800">admin</strong> &bull; Pass: <strong className="font-mono text-slate-800">admin123</strong>
-                  </p>
+                  <div className="text-[11px] text-slate-600 space-y-0.5">
+                    <p>User: <strong className="font-mono text-slate-900 font-bold">admin</strong></p>
+                    <p>Pass: <strong className="font-mono text-slate-900 font-bold">admin123</strong></p>
+                  </div>
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs font-bold text-amber-900 group-hover:translate-x-0.5 transition-transform">
+                <div className="mt-3 pt-2.5 border-t border-amber-200/70 flex items-center justify-between text-xs font-bold text-amber-950 group-hover:text-amber-800">
                   <span>Masuk Sebagai Admin</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-amber-700" />
+                  <ArrowRight className="w-4 h-4 text-amber-700 group-hover:translate-x-1 transition-transform" />
                 </div>
               </button>
 
@@ -258,25 +270,26 @@ export const LoginPage: React.FC = () => {
                 type="button"
                 onClick={() => handleQuickLogin('staff')}
                 disabled={loading}
-                className="group text-left p-3.5 rounded-2xl border-2 border-blue-200 bg-blue-50/70 hover:bg-blue-100 hover:border-blue-400 transition-all shadow-sm hover:shadow-md flex flex-col justify-between"
+                className="group text-left p-4 rounded-2xl border-2 border-blue-300/80 bg-gradient-to-br from-blue-50/90 to-blue-100/50 hover:bg-blue-100 hover:border-blue-500 transition-all shadow-sm hover:shadow-md flex flex-col justify-between active:scale-[0.99] disabled:opacity-60 cursor-pointer"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-blue-900">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-black text-blue-950">
                       <UserCheck className="w-4 h-4 text-secondary flex-shrink-0" />
                       Role Staff
                     </span>
-                    <span className="text-[10px] bg-blue-200/80 text-blue-900 font-bold px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] bg-blue-200 text-blue-900 font-extrabold px-2 py-0.5 rounded-full border border-blue-300">
                       Laboran
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-600">
-                    User: <strong className="font-mono text-slate-800">staff</strong> &bull; Pass: <strong className="font-mono text-slate-800">staff123</strong>
-                  </p>
+                  <div className="text-[11px] text-slate-600 space-y-0.5">
+                    <p>User: <strong className="font-mono text-slate-900 font-bold">staff</strong></p>
+                    <p>Pass: <strong className="font-mono text-slate-900 font-bold">staff123</strong></p>
+                  </div>
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs font-bold text-blue-900 group-hover:translate-x-0.5 transition-transform">
+                <div className="mt-3 pt-2.5 border-t border-blue-200/70 flex items-center justify-between text-xs font-bold text-blue-950 group-hover:text-blue-800">
                   <span>Masuk Sebagai Staff</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-blue-700" />
+                  <ArrowRight className="w-4 h-4 text-blue-700 group-hover:translate-x-1 transition-transform" />
                 </div>
               </button>
             </div>

@@ -7,7 +7,7 @@ interface AuthContextType {
   user: UserProfile | null;
   role: UserRole | null;
   isLoading: boolean;
-  login: (identifier: string, password?: string) => Promise<void>;
+  login: (identifier: string, password?: string) => Promise<UserProfile>;
   logout: () => Promise<void>;
   isSupabaseActive: boolean;
 }
@@ -86,26 +86,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (identifier: string, password?: string) => {
+  const login = async (identifier: string, password?: string): Promise<UserProfile> => {
     setIsLoading(true);
     try {
       if (isSupabaseConfigured) {
-        // First try email login; if user entered username, resolve email via profiles or username mapping
-        let emailToUse = identifier;
-        if (!identifier.includes('@')) {
-          // Look up user's email or format standard
-          const { data: matchedProfile } = await supabase
-            .from('profiles')
-            .select('id, username')
-            .eq('username', identifier.trim().toLowerCase())
-            .single();
-
-          if (!matchedProfile) {
-            throw new Error('Username tidak ditemukan dalam sistem.');
-          }
-          // In Supabase, if username is used, the email is username@labtrack.com or stored email
-          emailToUse = `${identifier.trim().toLowerCase()}@labtrack.com`;
-        }
+        // If user typed username without @, automatically append @labtrack.com
+        const cleanIdent = identifier.trim().toLowerCase();
+        const emailToUse = cleanIdent.includes('@') ? cleanIdent : `${cleanIdent}@labtrack.com`;
 
         const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
           email: emailToUse,
@@ -123,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .single();
 
         if (profErr || !profile) {
-          throw new Error('Data profil pengguna tidak ditemukan.');
+          throw new Error('Data profil pengguna tidak ditemukan di database.');
         }
 
         if (!profile.is_active) {
@@ -131,7 +118,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw new Error('Akun Anda telah dinonaktifkan oleh Administrator. Hubungi admin lab.');
         }
 
-        setUser({ ...profile, email: authData.user.email });
+        const finalUser: UserProfile = { ...profile, email: authData.user.email };
+        setUser(finalUser);
+        return finalUser;
       } else {
         // Local mode login
         const profiles = localDB.getProfiles();
@@ -162,6 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         localStorage.setItem('labtrack_current_user_id', found.id);
         setUser(found);
+        return found;
       }
     } finally {
       setIsLoading(false);
