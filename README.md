@@ -5,11 +5,23 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?logo=vercel&logoColor=white)](https://labtrack-ivory.vercel.app/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Aplikasi web profesional untuk manajemen inventaris perangkat laboratorium komputer, pencatatan transaksi peminjaman multi-barang, pemrosesan pengembalian parsial/penuh, dan manajemen hak akses pengguna (Role Admin & Staff) berbasis **Supabase PostgreSQL** dan **React + TypeScript**.
+Aplikasi web profesional untuk **Manajemen Inventaris & Transaksi Peminjaman Alat Laboratorium Komputer**, mendukung pencatatan peminjaman multi-barang, pengembalian bertahap (parsial/penuh), kalkulasi stok atomik anti race-condition, serta otorisasi multi-role (Admin & Staff) berbasis **React 18**, **TypeScript**, **Tailwind CSS**, dan **Supabase PostgreSQL**.
 
-Dikembangkan berdasarkan spesifikasi resmi **Coding Talent Challenge**.
+---
+
+## 🎓 Informasi Akademik & Proyek
+
+| Informasi | Detail |
+| :--- | :--- |
+| **Nama Pengembang** | **Rio Anggala** |
+| **NIM** | **241420035** |
+| **Dosen Pembimbing** | **Ari Muzakir, S.Kom., M.Cs.** |
+| **Nama Proyek** | LabTrack (Sistem Manajemen Inventaris & Peminjaman Laboratorium) |
+| **Live Production URL** | [https://labtrack-ivory.vercel.app](https://labtrack-ivory.vercel.app) |
+| **Repository GitHub** | [https://github.com/rioanggala1-hub/LABTRACK](https://github.com/rioanggala1-hub/LABTRACK) |
 
 ---
 
@@ -18,64 +30,64 @@ Dikembangkan berdasarkan spesifikasi resmi **Coding Talent Challenge**.
 1. [Fitur Utama](#-fitur-utama)
 2. [Teknologi yang Digunakan](#-teknologi-yang-digunakan)
 3. [Arsitektur & Keamanan Database](#-arsitektur--keamanan-database)
-4. [Akun Demo & Hak Akses](#-akun-demo--hak-akses)
+4. [Akun Autentikasi & Hak Akses](#-akun-autentikasi--hak-akses)
 5. [Struktur Folder](#-struktur-folder)
-6. [Panduan Instalasi & Menjalankan Aplikasi](#-panduan-instalasi--menjalankan-aplikasi)
+6. [Panduan Instalasi & Menjalankan Lokal](#-panduan-instalasi--menjalankan-lokal)
 7. [Panduan Konfigurasi Supabase](#-panduan-konfigurasi-supabase)
 8. [Panduan Deployment ke Vercel](#-panduan-deployment-ke-vercel)
-9. [Verifikasi Pengujian Fitur](#-verifikasi-pengujian-fitur)
+9. [Matriks Verifikasi Pengujian (18 Skenario)](#-matriks-verifikasi-pengujian-18-skenario)
+10. [Lisensi & Penutup](#-lisensi--penutup)
 
 ---
 
 ## 🌟 Fitur Utama
 
-### 1. Sistem Multi-Role (Admin & Staff)
+### 1. Manajemen Pengguna Multi-Role (RBAC)
 - **Role Admin:**
-  - Akses penuh dashboard analitik (grafik distribusi, riwayat aktivitas, barang paling sering dipinjam).
-  - Manajemen inventaris: Tambah barang baru, edit informasi, hapus barang (dilindungi validasi: barang yang sedang dipinjam tidak dapat dihapus).
-  - Manajemen kategori peralatan laboratorium.
-  - Manajemen akun Staff: Tambah staff baru, edit profil, aktifkan/nonaktifkan status staff.
-  - Akses riwayat seluruh transaksi dan ekspor laporan CSV.
+  - **Analytics Dashboard:** Ringkasan KPI total inventaris, alat dipinjam, stok kritis, dan total pengguna aktif disertai visualisasi chart Recharts.
+  - **Manajemen Inventaris:** Menambah alat baru, memperbarui detail barang, serta menghapus barang (terproteksi: alat yang sedang aktif dipinjam tidak dapat dihapus).
+  - **Manajemen Kategori:** Mengelompokkan inventaris ke dalam kategori (Komputer, Input, Output, Jaringan, dll.).
+  - **Manajemen Akun Staff:** Mendaftarkan staf baru, mengedit profil staf, serta menonaktifkan akun staf (staf nonaktif ditolak masuk sistem).
+  - **Audit Riwayat & Export CSV:** Melihat seluruh transaksi peminjaman/pengembalian dan mengekspor laporan ke format `.csv`.
 - **Role Staff:**
-  - Dashboard operasional terfokus pada ketersediaan stok barang dan status peminjaman.
-  - Pencatatan transaksi peminjaman alat mahasiswa/dosen (multi-item dalam satu transaksi).
-  - Pemrosesan pengembalian barang (pengembalian sebagian maupun sekaligus).
-  - Pembatasan hak akses: Staff tidak dapat menambah/mengedit/menghapus barang maupun mengelola akun.
+  - **Operational Dashboard:** Fokus pada ketersediaan stok fisik dan peminjaman yang sedang berlangsung.
+  - **Pencatatan Peminjaman Multi-Item:** Memproses peminjaman beberapa jenis alat sekaligus dalam satu nomor transaksi (`BRW-YYYYMMDD-XXXX`).
+  - **Pengembalian Bertahap (Partial Return):** Memproses pengembalian alat secara parsial (sebagian) atau penuh (selesai).
+  - **Pembatasan Akses:** Staf tidak dapat mengakses halaman pengaturan akun, menambah/menghapus barang, maupun mengubah konfigurasi sistem.
 
 ### 2. Transaksi Stok Atomik (PostgreSQL RPC Functions)
-- **Zero Race Condition & Negative Stock Prevention:** Perubahan stok saat peminjaman (`borrow_items_atomic`) dan pengembalian (`return_items_atomic`) dijalankan di level database Supabase dengan `SELECT ... FOR UPDATE` dan transaksi atomik, memastikan stok fisik dan stok tersedia selalu sinkron.
-- **Multi-Item Borrowing:** Mendukung peminjaman beberapa jenis barang sekaligus dengan nomor transaksi unik otomatis (`BRW-YYYYMMDD-XXXX`).
-- **Partial Returns:** Mendukung pengembalian bertahap (contoh: pinjam 5 unit mouse, dikembalikan 2 unit terlebih dahulu, lalu sisa 3 unit berikutnya). Status transaksi otomatis diperbarui (`Dipinjam` ➔ `Sebagian Dikembalikan` ➔ `Selesai`).
+- **Zero Race Condition & Negative Stock Prevention:** Perubahan stok saat peminjaman (`borrow_items_atomic`) dan pengembalian (`return_items_atomic`) dieksekusi di level database PostgreSQL Supabase dengan `SELECT ... FOR UPDATE` dan transaksi atomik, menjamin integritas stok fisik dan stok tersedia selalu sinkron.
+- **Peminjaman Fleksibel Multi-Item:** Mahasiswa/dosen dapat meminjam beragam periferal dalam 1 form (misal: 1 Laptop + 2 Mouse + 1 Proyektor).
+- **Pengembalian Bertahap:** Status transaksi otomatis berevolusi dari `Dipinjam` ➔ `Sebagian Dikembalikan` ➔ `Selesai` berdasarkan kuantitas alat yang telah diserahkan kembali.
 
-### 3. UI/UX Modern & Responsif
-- **Design System Profesional:** Menggunakan palet warna Navy Blue (`#1E3A5F`), Blue (`#2563EB`), Light Gray Background (`#F8FAFC`), dan font Inter.
-- **Komponen Interaktif:** Modal dialog, toast notifications, confirmation dialogs, loading skeletons shimmer, empty states, dan grafik interaktif Recharts.
-- **Responsif:** Optimal untuk layar Desktop, Laptop, Tablet, hingga Smartphone.
+### 3. UI/UX Modern SaaS Dashboard
+- **Design System Standar Enterprise:** Palet warna Navy Blue (`#142D4E`), Royal Blue (`#2563EB`), Cyan (`#06B6D4`), Soft Background (`#F4F7FB`), serta tipografi modern *Plus Jakarta Sans*.
+- **Interaksi Halus & Responsif:** Komponen modal dialog interaktif, toast notifications, loading skeleton shimmer, konfirmasi penghapusan, dan mobile sidebar drawer yang responsif di Desktop, Tablet, hingga Smartphone.
 
 ---
 
 ## 🛠 Teknologi yang Digunakan
 
-| Komponen | Teknologi |
-| :--- | :--- |
-| **Frontend Framework** | React.js 18 + Vite |
-| **Bahasa Pemrograman** | TypeScript 5.5 |
-| **Styling & CSS** | Tailwind CSS 3.4 + Autoprefixer |
-| **Icon System** | Lucide React |
-| **Data Visualization** | Recharts (BarChart & PieChart) |
-| **Database Engine** | Supabase (PostgreSQL 15+) |
-| **Autentikasi** | Supabase Authentication + Session Persistence |
-| **Security Layer** | PostgreSQL Row Level Security (RLS) & RPC Functions |
-| **Routing** | React Router DOM v6 |
-| **Hosting Platform** | Vercel (SPA rewrites configured via `vercel.json`) |
+| Layer | Teknologi | Versi | Peran / Kegunaan |
+| :--- | :--- | :--- | :--- |
+| **Frontend Framework** | React | 18.3 | User interface berbasis komponen reaktif |
+| **Bundler & Tooling** | Vite | 5.4 | Build tool modern, fast HMR & TypeScript loader |
+| **Language** | TypeScript | 5.5 | Type safety, penanganan interface data transaksi |
+| **Styling** | Tailwind CSS | 3.4 | Utilitas styling modern, custom color token & animasi |
+| **Icons** | Lucide React | 0.441 | Iconography konsisten dan modern |
+| **Data Visualization** | Recharts | 2.12 | Grafik distribusi kategori dan tren aktivitas |
+| **Database Engine** | Supabase (PostgreSQL) | 15+ | Relational database, RPC functions, Triggers |
+| **Security Layer** | Row Level Security (RLS) | - | Kebijakan akses data di level baris tabel |
+| **Autentikasi** | Supabase Auth | - | Session persistence, JWT tokens, RBAC guard |
+| **Cloud Hosting** | Vercel | - | Production deployment with SPA rewrites |
 
 ---
 
 ## 🔒 Arsitektur & Keamanan Database
 
-Database Supabase terdiri dari 6 tabel relasional yang saling terintegrasi:
+Database Supabase terdiri dari 6 tabel relasional yang saling terhubung:
 
-```
+```text
 [auth.users] (Supabase Auth)
      │
      ▼ (1:1)
@@ -98,20 +110,21 @@ Database Supabase terdiri dari 6 tabel relasional yang saling terintegrasi:
 ```
 
 ### Keamanan Row Level Security (RLS)
-- Seluruh tabel (`profiles`, `categories`, `items`, `borrowings`, `borrowing_details`, `return_history`) memiliki RLS aktif.
-- Helper functions `is_admin()` dan `is_active_user()` memastikan staff yang dinonaktifkan tidak dapat mengeksekusi operasi database.
-- Service Role Key tidak pernah diletakkan di frontend. Seluruh transaksi frontend menggunakan `anon public key` dengan hak akses yang diawasi oleh RLS dan RPC berorientasi `SECURITY DEFINER`.
+- Seluruh tabel (`profiles`, `categories`, `items`, `borrowings`, `borrowing_details`, `return_history`) diproteksi dengan RLS aktif.
+- Helper function `is_admin()` dan `is_active_user()` memastikan pengguna yang tidak sah atau akun staf nonaktif tidak dapat melakukan modifikasi database.
+- Database service secret key hanya digunakan pada layer administratif dan tidak pernah diekspos di frontend.
 
 ---
 
-## 👥 Akun Demo & Hak Akses
+## 👥 Akun Autentikasi & Hak Akses
 
-Aplikasi dilengkapi tombol **Login Cepat Demo** di halaman login untuk mempermudah pengujian:
+Aplikasi menyediakan akun siap pakai dan fitur **Quick 1-Click Demo Login** pada antarmuka login:
 
-| Role | Username | Email | Password | Hak Akses |
+| Role | Nama Pengguna | Email | Password | Hak Akses Utama |
 | :--- | :--- | :--- | :--- | :--- |
-| **Admin** | `admin` | `admin@labtrack.com` | `admin123` | Akses penuh (Inventaris, Staff, Laporan, Dashboard) |
-| **Staff** | `staff` | `staff@labtrack.com` | `staff123` | Akses operasional (Peminjaman & Pengembalian barang) |
+| **Admin** | **Rio Anggala (Admin)** | `rio@labtrack.com` | `admin123` | Akses Penuh: Inventaris, Kategori, Staf, Laporan, Dashboard |
+| **Admin** | Super Admin | `admin@labtrack.com` | `admin123` | Akses Penuh Administrator |
+| **Staff** | Staff Laboratorium | `staff@labtrack.com` | `staff123` | Akses Operasional: Peminjaman & Pengembalian Barang |
 
 ---
 
@@ -119,63 +132,57 @@ Aplikasi dilengkapi tombol **Login Cepat Demo** di halaman login untuk mempermud
 
 ```text
 d:\tugas pak ary\
-├── .env.example              # Template variabel lingkungan Supabase
-├── index.html                # Entry point HTML & font Inter
-├── package.json              # Daftar dependencies dan scripts
-├── tailwind.config.js        # Konfigurasi palet warna & tipografi LabTrack
+├── .env                      # File konfigurasi environment lokal
+├── .env.example              # Template variabel lingkungan
+├── index.html                # Entry point HTML & Google Fonts
+├── package.json              # Dependensi dan scripts Node.js
+├── tailwind.config.js        # Konfigurasi tema warna dan animasi
 ├── tsconfig.json             # Konfigurasi compiler TypeScript
-├── vercel.json               # Konfigurasi routing rewrite SPA untuk Vercel
-├── vite.config.ts            # Konfigurasi bundling Vite & alias '@/'
-├── public/
-│   └── favicon.svg           # Logo tab browser
+├── vercel.json               # Konfigurasi rewrites SPA di Vercel
+├── vite.config.ts            # Konfigurasi bundling Vite
 ├── supabase/
-│   ├── full_setup.sql        # Skrip SQL all-in-one (Schema, RLS, RPC, Seed)
-│   ├── seed.sql              # Data awal kategori & inventaris barang
+│   ├── full_setup.sql        # Skrip database lengkap (Schema, RLS, RPC, Seed)
+│   ├── seed.sql              # Data awal kategori & inventaris
 │   └── migrations/
-│       └── 20261112000000_initial_schema.sql
 └── src/
-    ├── main.tsx              # React DOM render entrypoint
-    ├── App.tsx               # Router & Context wrappers
-    ├── index.css             # Tailwind base & custom animations
-    ├── vite-env.d.ts         # Type declarations untuk Vite client
+    ├── main.tsx              # React mounting point
+    ├── App.tsx               # Context provider & route container
+    ├── index.css             # Tailwind base & layout directives
     ├── types/
-    │   └── index.ts          # Definisi antarmuka TypeScript lengkap
-    ├── utils/
-    │   ├── cn.ts             # Tailwind class merging utility
-    │   └── formatters.ts     # Format tanggal Indonesia & badge status
+    │   └── index.ts          # Definisi interface TypeScript (Item, Borrowing, Profile)
     ├── lib/
-    │   └── supabase.ts       # Inisialisasi Supabase client & connection detector
+    │   └── supabase.ts       # Client Supabase & auto-connection detector
     ├── contexts/
-    │   ├── AuthContext.tsx   # Context state autentikasi & session guard
-    │   └── ToastContext.tsx  # Global toast notification provider
+    │   ├── AuthContext.tsx   # Pengelolaan state autentikasi & session login
+    │   └── ToastContext.tsx  # Sistem notifikasi toast global
     ├── services/
-    │   ├── api.ts            # Service layer (Supabase RPC & PostgreSQL queries)
-    │   ├── mockData.ts       # Data awal seed
-    │   └── storage.ts        # Persistent storage engine fallback
+    │   ├── api.ts            # Service layer integrasi Supabase RPC & query
+    │   ├── mockData.ts       # Mock data cadangan
+    │   └── storage.ts        # LocalStorage fallback engine
     ├── components/
     │   ├── ui/               # StatCard, Modal, ConfirmDialog, Skeleton, EmptyState
-    │   ├── layout/           # Sidebar, Navbar, AppLayout
+    │   ├── layout/           # Modern Sidebar, Header Navbar, AppLayout
     │   └── common/           # SetupInfoModal
     ├── pages/
-    │   ├── auth/             # LoginPage
-    │   ├── admin/            # AdminDashboard
+    │   ├── auth/             # LoginPage (dengan 1-Click Demo Cards)
+    │   ├── admin/            # AdminDashboard (SaaS Modern Redesign)
     │   ├── staff/            # StaffDashboard
-    │   ├── inventory/        # InventoryPage
-    │   ├── borrowing/        # BorrowingPage
-    │   ├── returning/        # ReturningPage
-    │   ├── users/            # UserManagementPage
-    │   └── history/          # HistoryPage
+    │   ├── inventory/        # InventoryPage (Katalog & CRUD Barang)
+    │   ├── borrowing/        # BorrowingPage (Transaksi Multi-Item)
+    │   ├── returning/        # ReturningPage (Pemrosesan Pengembalian)
+    │   ├── users/            # UserManagementPage (Kelola Akun Staf)
+    │   └── history/          # HistoryPage (Audit Trail & CSV Export)
     └── routes/
-        ├── AppRoutes.tsx     # Route definitions
-        └── ProtectedRoute.tsx# Role & authentication guards
+        ├── AppRoutes.tsx     # Definisi routing aplikasi
+        └── ProtectedRoute.tsx# Route guard berbasis hak akses & role
 ```
 
 ---
 
-## 🚀 Panduan Instalasi & Menjalankan Aplikasi
+## 🚀 Panduan Instalasi & Menjalankan Lokal
 
-### 1. Prasyarat
-- **Node.js** v18+ atau v20+ / v22+
+### 1. Prasyarat Sistem
+- **Node.js** versi 18.x / 20.x / 22.x
 - **Git**
 
 ### 2. Kloning & Instalasi Dependencies
@@ -188,111 +195,80 @@ npm install
 ```
 
 ### 3. Konfigurasi Lingkungan (`.env`)
-Salin file `.env.example` menjadi `.env`:
-```bash
-cp .env.example .env
-```
-Isi URL dan Anon Key proyek Supabase Anda:
+Salin file `.env.example` menjadi `.env` lalu sesuaikan isinya:
 ```env
-VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-public-key-here
+VITE_SUPABASE_URL=https://eposjvzxfxjikhfxaqxg.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_4YrebWRF0gppANTQToNPWQ_CqV01aXV
 ```
-*(Catatan: Jika belum diisi, aplikasi secara cerdas beralih ke Mode Demonstrasi Lokal berbasis Persistent LocalStorage sehingga seluruh alur UI/UX tetap dapat diuji 100% tanpa kendala).*
 
 ### 4. Menjalankan Server Pengembangan
 ```bash
 npm run dev
 ```
-Buka browser di **http://localhost:3000** atau alamat yang ditampilkan oleh terminal.
+Buka browser pada alamat: **http://localhost:3000**
 
-### 5. Membangun Versi Produksi
+### 5. Build Versi Produksi
 ```bash
 npm run build
 ```
-Hasil build siap saji akan dibuat di folder `dist/`.
+File build optimal akan dihasilkan di folder `dist/`.
 
 ---
 
 ## 🗄 Panduan Konfigurasi Supabase
 
-Untuk menghubungkan aplikasi ke backend database PostgreSQL Supabase yang sesungguhnya:
+Untuk memasang database baru di platform Supabase:
 
-1. **Buat Project Baru di Supabase:**
-   - Masuk ke [https://supabase.com](https://supabase.com).
-   - Buat project baru, tentukan nama (misal: `lab-inventory`) dan password database.
-
-2. **Jalankan Skrip Database Lengkap:**
-   - Pada panel Supabase di sebelah kiri, klik menu **SQL Editor**.
-   - Klik **New Query**.
-   - Buka file `supabase/full_setup.sql` di repository ini, lalu salin dan tempelkan seluruh kodenya ke SQL Editor Supabase.
-   - Klik tombol **Run** (Ctrl + Enter).
-   - Seluruh tabel, index, foreign key, trigger auth user, fungsi RPC atomik, kebijakan RLS, serta data seed awal barang langsung terpasang!
-
-3. **Ambil Kredensial API:**
-   - Buka menu **Project Settings** (ikon gerigi) ➔ **API**.
-   - Salin **Project URL** ke `VITE_SUPABASE_URL`.
-   - Salin **Project API Keys (`anon public`)** ke `VITE_SUPABASE_ANON_KEY`.
-
-4. **Konfigurasikan Akun Demo di Supabase Auth:**
-   - Buka menu **Authentication** ➔ **Users** ➔ Klik **Add User** ➔ **Create User**.
-   - Masukkan Email: `admin@labtrack.com`, Password: `admin123`.
-     (Trigger database akan otomatis menambahkan akun ini ke tabel `public.profiles` dengan role `admin`).
-   - Tambahkan User kedua: Email: `staff@labtrack.com`, Password: `staff123`.
-     (Trigger database akan otomatis memasukkannya sebagai `staff`).
+1. Buka [Supabase Dashboard](https://supabase.com).
+2. Buat project baru.
+3. Buka menu **SQL Editor** ➔ **New Query**.
+4. Buka file `supabase/full_setup.sql`, salin seluruh kodenya, tempel ke SQL Editor, lalu klik **Run**.
+5. Buka menu **Project Settings** ➔ **API**, salin **Project URL** dan **Anon Key** ke dalam file `.env`.
+6. Pengguna awal (`admin@labtrack.com`, `staff@labtrack.com`, dan `rio@labtrack.com`) akan otomatis dibuatkan profil dengan hak akses masing-masing.
 
 ---
 
 ## ☁️ Panduan Deployment ke Vercel
 
-Aplikasi telah dilengkapi `vercel.json` agar routing SPA React Router berjalan mulus saat halaman di-refresh di production.
+Proyek ini telah dikonfigurasi dengan file `vercel.json` untuk menangani routing SPA (Single Page Application):
 
-### Langkah Deploy:
-1. Push repository proyek ini ke akun GitHub Anda:
-   ```bash
-   git remote add origin https://github.com/USERNAME/labtrack-system.git
-   git branch -M main
-   git push -u origin main
-   ```
-2. Buka dashboard [Vercel](https://vercel.com/) dan klik **Add New Project**.
-3. Hubungkan repository GitHub Anda.
-4. Pada bagian **Build and Output Settings**:
-   - Framework Preset: **Vite**
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-5. Pada bagian **Environment Variables**, tambahkan:
-   - `VITE_SUPABASE_URL` = (URL Supabase Anda)
-   - `VITE_SUPABASE_ANON_KEY` = (Anon Key Supabase Anda)
-6. Klik **Deploy**.
-7. Tunggu beberapa detik hingga Vercel memberikan URL publik (contoh: `https://labtrack-inventory.vercel.app`).
+1. Hubungkan repository GitHub [LABTRACK](https://github.com/rioanggala1-hub/LABTRACK) ke Vercel.
+2. Pada menu **Project Settings ➔ Environment Variables**, masukkan:
+   - `VITE_SUPABASE_URL` = `https://eposjvzxfxjikhfxaqxg.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY` = `sb_publishable_4YrebWRF0gppANTQToNPWQ_CqV01aXV`
+3. Jalankan **Deploy** atau **Redeploy**.
+4. Website aktif dapat diakses publik pada:  
+   👉 **[https://labtrack-ivory.vercel.app](https://labtrack-ivory.vercel.app)**
 
 ---
 
-## ✅ Verifikasi Pengujian Fitur (18 Skenario)
+## ✅ Matriks Verifikasi Pengujian (18 Skenario)
 
-| No | Skenario Pengujian | Hasil Verifikasi |
-| :---: | :--- | :---: |
-| 1 | Admin berhasil login dengan kredensial yang benar | **PASS** |
-| 2 | Staff berhasil login dengan kredensial yang benar | **PASS** |
-| 3 | Staff tidak dapat membuka halaman Admin (`/admin/dashboard`, `/users`) | **PASS** (Protected Route redirect otomatis) |
-| 4 | Admin dapat menambahkan barang baru ke inventaris | **PASS** (Modal form & kode unik tervalidasi) |
-| 5 | Admin dapat mengedit data barang | **PASS** (Update data & stok sinkron) |
-| 6 | Admin dapat menghapus barang yang aman untuk dihapus | **PASS** (Konfirmasi dialog & proteksi pinjaman aktif) |
-| 7 | Staff dapat mencatat peminjaman (multi-item) | **PASS** (Validasi formulir & stok) |
-| 8 | Stok tersedia otomatis berkurang setelah peminjaman berhasil | **PASS** (Atomic RPC / state decrement) |
-| 9 | Sistem menolak peminjaman jika melebihi stok yang tersedia | **PASS** (Peringatan & penolakan input &gt; stok) |
-| 10 | Staff dapat memproses pengembalian barang | **PASS** (Modal pengembalian interaktif) |
-| 11 | Stok tersedia otomatis bertambah setelah pengembalian | **PASS** (Atomic RPC / state increment) |
-| 12 | Fitur pengembalian sebagian (partial return) berfungsi | **PASS** (Status berubah ke 'Sebagian Dikembalikan') |
-| 13 | Status transaksi otomatis berubah menjadi 'Selesai' saat seluruh barang kembali | **PASS** (Pengecekan total kuantitas detail) |
-| 14 | Riwayat transaksi dan audit pengembalian tersimpan rapi | **PASS** (Halaman Riwayat & Log Pengembalian) |
-| 15 | Admin dapat mengelola akun Staff (tambah, edit, pencarian) | **PASS** (Manajemen Pengguna khusus Admin) |
-| 16 | Akun Staff yang dinonaktifkan ditolak login | **PASS** (Pesan kesalahan eksplisit & akses diblokir) |
-| 17 | Data tetap tersimpan permanen saat halaman di-refresh | **PASS** (Supabase Database / Persistent Storage) |
-| 18 | Tampilan responsif dan navigasi tanpa reload (SPA) | **PASS** (Tailwind CSS Mobile Sidebar & Vite) |
+| No | Skenario Pengujian | Hasil | Keterangan Verifikasi |
+| :---: | :--- | :---: | :--- |
+| 1 | Admin berhasil login dengan email & password yang valid | **PASS** | Token JWT diterima & diarahkan ke `/admin/dashboard` |
+| 2 | Staff berhasil login dengan akun staf yang valid | **PASS** | Token JWT diterima & diarahkan ke `/staff/dashboard` |
+| 3 | Staff diblokir saat mencoba membuka halaman Admin (`/admin/dashboard`, `/users`) | **PASS** | `ProtectedRoute` otomatis me-redirect ke dashboard staf |
+| 4 | Admin dapat menambahkan barang baru ke inventaris | **PASS** | Form modal tervalidasi, kode unik dicek, tersimpan ke DB |
+| 5 | Admin dapat memperbarui informasi & stok barang | **PASS** | Data ter-update realtime di tabel inventaris |
+| 6 | Admin tidak dapat menghapus barang yang sedang dalam peminjaman aktif | **PASS** | Validasi memunculkan error proteksi relasi transaksi |
+| 7 | Staff dapat mencatat transaksi peminjaman multi-barang | **PASS** | Transaksi atomik menyimpan header & detail peminjaman |
+| 8 | Stok tersedia (`available_stock`) otomatis berkurang setelah peminjaman | **PASS** | RPC Function `borrow_items_atomic` mengurangi stok |
+| 9 | Sistem menolak peminjaman jika jumlah melebihi stok yang tersedia | **PASS** | Validasi input & database memblokir transaksi berlebih |
+| 10 | Staff dapat membuka formulir pengembalian barang | **PASS** | Modal menampilkan sisa kuantitas alat yang belum kembali |
+| 11 | Stok tersedia otomatis bertambah saat pengembalian diproses | **PASS** | RPC Function `return_items_atomic` menambah kembali stok |
+| 12 | Fitur pengembalian sebagian (partial return) berfungsi dengan akurat | **PASS** | Status transaksi otomatis menjadi `Sebagian Dikembalikan` |
+| 13 | Status transaksi otomatis berubah menjadi `Selesai` saat semua alat kembali | **PASS** | Logika kalkulasi memeriksa kesesuaian total kuantitas |
+| 14 | Riwayat pengembalian dan audit peminjaman tersimpan lengkap | **PASS** | Tabel `return_history` mencatat tanggal, staf, & catatan |
+| 15 | Admin dapat mengelola akun staf (tambah, edit, pencarian) | **PASS** | Menu Manajemen Pengguna berfungsi penuh |
+| 16 | Akun staf yang dinonaktifkan ditolak masuk ke dalam sistem | **PASS** | RLS & validasi login menolak akses akun nonaktif |
+| 17 | Data tetap tersimpan permanen saat halaman di-refresh | **PASS** | PostgreSQL Supabase menyimpan data persisten di cloud |
+| 18 | Navigasi halaman cepat tanpa reload serta antarmuka responsif mobile | **PASS** | SPA Client-side Routing & Responsive Sidebar Drawer |
 
 ---
 
-## 📄 Lisensi & Hak Cipta
-Dibuat dengan dedikasi dan standar rekayasa perangkat lunak profesional untuk **Coding Talent Challenge**.
-Hak Cipta &copy; 2026 LabTrack System.
+## 📄 Lisensi & Penutup
 
+Proyek ini dikembangkan oleh **Rio Anggala** (NIM: **241420035**) di bawah bimbingan dosen **Ari Muzakir, S.Kom., M.Cs.** sebagai implementasi sistem manajemen laboratorium berbasis teknologi web modern.
+
+Hak Cipta &copy; 2026 **LabTrack System**. Seluruh hak cipta dilindungi undang-undang.
